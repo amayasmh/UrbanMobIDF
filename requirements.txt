@@ -3,3 +3,8 @@ flake8
 isort
 httpx
 logging
+streamlit
+pandas
+networkx
+db-sqlite3
+streamlit_folium

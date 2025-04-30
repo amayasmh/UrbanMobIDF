@@ -175,3 +175,8 @@ cython_debug/
 
 Tests
 .idea/
+.zip
+.txt
+.csv
+.json
+.db
