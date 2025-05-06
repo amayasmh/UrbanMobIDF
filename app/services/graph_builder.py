@@ -1,7 +1,8 @@
 # fichier : app/services/graph_builder.py
 
-import pandas as pd
 import networkx as nx
+import pandas as pd
+
 
 def time_to_seconds(t: str) -> int:
     """Convertit HH:MM:SS en secondes"""

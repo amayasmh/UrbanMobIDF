@@ -1,14 +1,16 @@
 # fichier : app/screens/itineraire.py
 
-import streamlit as st
-import pandas as pd
 from datetime import datetime
+
 import folium
+import pandas as pd
+import streamlit as st
 from streamlit_folium import st_folium
 
 from app.services.db_connector import get_connection
 from app.services.graph_builder import build_graph
 from app.services.route_finder import find_best_route
+
 
 def run():
     st.title("🗺️ Recherche d'Itinéraire")

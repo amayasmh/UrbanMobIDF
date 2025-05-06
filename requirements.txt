@@ -9,3 +9,4 @@ networkx
 db-sqlite3
 streamlit_folium
 matplotlib
+folium

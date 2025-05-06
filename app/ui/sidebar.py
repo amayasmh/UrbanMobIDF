@@ -1,8 +1,10 @@
 import streamlit as st
 from PIL import Image
+
 import app.config as config
-from app.utils import get_current_page, set_current_page
 from app.screens import screens
+from app.utils import get_current_page, set_current_page
+
 
 def render_sidebar():
     st.sidebar.title("🚦 Mobilité Urbaine Optimisée")

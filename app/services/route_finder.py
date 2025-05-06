@@ -1,7 +1,9 @@
 # fichier : app/services/route_finder.py
 
-import networkx as nx
 from datetime import datetime
+
+import networkx as nx
+
 
 def time_to_seconds(t: str) -> int:
     """Convertit une heure HH:MM:SS en secondes"""

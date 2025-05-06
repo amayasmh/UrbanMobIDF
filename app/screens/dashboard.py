@@ -1,9 +1,11 @@
 # fichier : app/screens/dashboard.py
 
-import streamlit as st
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
+import streamlit as st
+
 from app.services.db_connector import get_connection
+
 
 def run():
     st.title("📊 Tableau de bord - Analyse de la mobilité")

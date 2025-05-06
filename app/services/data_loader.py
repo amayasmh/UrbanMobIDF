@@ -1,7 +1,8 @@
 # fichier: app/services/data_loader.py
 
-import pandas as pd
 import os
+
+import pandas as pd
 
 # Dossier où sont stockés les fichiers
 DATA_DIR = os.path.join(os.path.dirname(__file__), "../../data/datalake")

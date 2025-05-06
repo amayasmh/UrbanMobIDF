@@ -1,8 +1,9 @@
 # fichier : app/Menu.py
 
-import streamlit as st
-import sys
 import os
+import sys
+
+import streamlit as st
 
 # Ajouter le chemin racine
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -10,8 +11,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # Définir la config AVANT tout Streamlit
 st.set_page_config(page_title="🚦 Mobilité Urbaine Optimisée", page_icon="🚦", layout="wide")
 
-from app.ui.sidebar import render_sidebar
 from app.screens import screens
+from app.ui.sidebar import render_sidebar
 from app.utils import get_current_page
 
 # Rendu de la sidebar
