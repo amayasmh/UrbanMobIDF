@@ -1,23 +1,34 @@
 import sqlite3
 import os
 
+DB_PATH = os.path.join(os.path.dirname(__file__), "../../data/databases/mobility.db")
+
 def get_connection():
-    db_path = os.path.join(os.path.dirname(__file__), "../../data/mobility.db")
-    conn = sqlite3.connect(db_path, check_same_thread=False)  # <<== AJOUT IMPORTANT !
-    return conn
+    """Retourne une connexion SQLite à la base de données."""
+    try:
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+        return conn
+    except sqlite3.Error as e:
+        print(f"Erreur lors de la connexion à la base de données : {e}")
+        return None
 
+def initialize_db():
+    """Crée les index nécessaires à la performance si non existants."""
+    conn = get_connection()
+    if conn is None:
+        return
+    try:
+        cursor = conn.cursor()
+        # Création d'index utiles
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_stop_times_stop_id ON stop_times (stop_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_stop_times_trip_id ON stop_times (trip_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_stops_stop_name ON stops (stop_name);")
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Erreur lors de l'initialisation de la base : {e}")
+    finally:
+        conn.close()
 
-# conn = sqlite3.connect("data/mobility.db")
-# cursor = conn.cursor()
-#
-# # Index sur stop_id pour stop_times
-# cursor.execute("CREATE INDEX IF NOT EXISTS idx_stop_times_stop_id ON stop_times (stop_id);")
-#
-# # Index sur trip_id pour stop_times
-# cursor.execute("CREATE INDEX IF NOT EXISTS idx_stop_times_trip_id ON stop_times (trip_id);")
-#
-# # Index sur stop_name pour stops
-# cursor.execute("CREATE INDEX IF NOT EXISTS idx_stops_stop_name ON stops (stop_name);")
-#
-# conn.commit()
-# conn.close()
+# Exemple d’utilisation directe
+if __name__ == "__main__":
+    initialize_db()

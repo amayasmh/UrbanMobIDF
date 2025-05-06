@@ -174,9 +174,8 @@ cython_debug/
 .pypirc
 
 Tests
-.idea/
-.zip
-.txt
-.csv
-.json
-.db
+*.zip
+*.txt
+*.csv
+*.json
+*.db

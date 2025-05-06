@@ -4,69 +4,32 @@ import pandas as pd
 import os
 
 # Dossier où sont stockés les fichiers
-DATA_DIR = os.path.join(os.path.dirname(__file__), "../../data")
+DATA_DIR = os.path.join(os.path.dirname(__file__), "../../data/datalake")
 
-def load_agency():
-    return pd.read_csv(os.path.join(DATA_DIR, "agency.txt"), low_memory=False, encoding='utf-8')
+def load_file(filename, sep=','):
+    try:
+        return pd.read_csv(os.path.join(DATA_DIR, filename), sep=sep, encoding='utf-8', low_memory=False)
+    except Exception as e:
+        print(f"Erreur lors du chargement de {filename} : {e}")
+        return pd.DataFrame()
 
-def load_booking_rules():
-    return pd.read_csv(os.path.join(DATA_DIR, "booking_rules.txt"), low_memory=False, encoding='utf-8')
+# Fonctions spécifiques
+def load_agency(): return load_file("agency.txt")
+def load_booking_rules(): return load_file("booking_rules.txt")
+def load_calendar(): return load_file("calendar.txt")
+def load_calendar_dates(): return load_file("calendar_dates.txt")
+def load_pathways(): return load_file("pathways.txt")
+def load_routes(): return load_file("routes.txt")
+def load_stop_extensions(): return load_file("stop_extensions.txt")
+def load_stop_times(): return load_file("stop_times.txt")
+def load_stops(): return load_file("stops.txt")
+def load_ticketing_deep_links(): return load_file("ticketing_deep_links.txt")
+def load_transfers(): return load_file("transfers.txt")
+def load_trips(): return load_file("trips.txt")
+def load_arrets_lignes(): return load_file("arrets_lignes.csv", sep=';')
+def load_export_trajectoires(): return load_file("export_trajectoires.csv")
 
-def load_calendar():
-    return pd.read_csv(os.path.join(DATA_DIR, "calendar.txt"), low_memory=False, encoding='utf-8')
-
-def load_calendar_dates():
-    return pd.read_csv(os.path.join(DATA_DIR, "calendar_dates.txt"), low_memory=False, encoding='utf-8')
-
-def load_pathways():
-    return pd.read_csv(os.path.join(DATA_DIR, "pathways.txt"), low_memory=False, encoding='utf-8')
-
-def load_routes():
-    return pd.read_csv(os.path.join(DATA_DIR, "routes.txt"), low_memory=False, encoding='utf-8')
-
-def load_stop_extensions():
-    return pd.read_csv(os.path.join(DATA_DIR, "stop_extensions.txt"), low_memory=False, encoding='utf-8')
-
-def load_stop_times():
-    return pd.read_csv(os.path.join(DATA_DIR, "stop_times.txt"), low_memory=False, encoding='utf-8')
-
-def load_stops():
-    return pd.read_csv(os.path.join(DATA_DIR, "stops.txt"), low_memory=False, encoding='utf-8')
-
-def load_ticketing_deep_links():
-    return pd.read_csv(os.path.join(DATA_DIR, "ticketing_deep_links.txt"), low_memory=False, encoding='utf-8')
-
-def load_transfers():
-    return pd.read_csv(os.path.join(DATA_DIR, "transfers.txt"), low_memory=False, encoding='utf-8')
-
-def load_trips():
-    return pd.read_csv(os.path.join(DATA_DIR, "trips.txt"), low_memory=False, encoding='utf-8')
-
-def load_arrets_lignes():
-    return pd.read_csv(
-        os.path.join(DATA_DIR, "arrets_lignes.csv"),
-        sep=';',          # Attention ici, séparateur spécial !
-        encoding='utf-8'  # Sécurisé
-    )
-
-def load_export_trajectoires():
-    return pd.read_csv(
-        os.path.join(DATA_DIR, "export_trajectoires.csv"),
-        sep=',',          # Séparateur classique
-        encoding='utf-8'  # Sécurisé
-    )
-
-def load_all_data():
-    stops = pd.read_csv('data/stops.txt', low_memory=False, encoding='utf-8')
-    stop_times = pd.read_csv('data/stop_times.txt', low_memory=False, encoding='utf-8')
-    trips = pd.read_csv('data/trips.txt', low_memory=False, encoding='utf-8')
-    routes = pd.read_csv('data/routes.txt', low_memory=False, encoding='utf-8')
-    transfers = pd.read_csv('data/transfers.txt', low_memory=False, encoding='utf-8')
-
-    return stops, stop_times, trips, routes, transfers
-
-
-# Exemple d'utilisation:
+# Exemple d'utilisation
 if __name__ == "__main__":
-    agency_df = load_agency()
-    print(agency_df.head())
+    df = load_agency()
+    print(df.head())

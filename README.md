@@ -12,7 +12,7 @@ ________________________________________________________________________________
   - [PRIM - Prochains passages - Requpête unitaire](https://prim.iledefrance-mobilites.fr/fr/apis/idfm-ivtr-requete_unitaire)
 - Datasets :
   - [Référentiels des arrêts](https://data.iledefrance-mobilites.fr/explore/dataset/arrets/export/?ref=prim.iledefrance-mobilites.fr)
-- Other sources :
+  - [Dataset à automatiser ](https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/offre-horaires-tc-gtfs-idfm)
 ____________________________________________________________________________________________________________________________________________________________________________________
 ## Best Practices (First : English as a programming language)
 - Follow naming conventions :
@@ -44,6 +44,7 @@ ________________________________________________________________________________
 - Clone the repository : `git clone
 - Install the required packages : `pip install -r requirements.txt`
 - Run the .exe file
+- Or streamlit run app/main.py
 - A navigation window will open to the streamlit interface
 ____________________________________________________________________________________________________________________________________________________________________________________
 ## Contributors
