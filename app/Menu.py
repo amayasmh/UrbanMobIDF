@@ -9,7 +9,7 @@ import streamlit as st
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Définir la config AVANT tout Streamlit
-st.set_page_config(page_title="🚦 Mobilité Urbaine Optimisée", page_icon="🚦", layout="wide")
+st.set_page_config(page_title="Mobilité Urbaine Optimisée", page_icon="app/assets/logo_.png", layout="wide")
 
 from app.screens import screens
 from app.ui.sidebar import render_sidebar

@@ -11,7 +11,7 @@ def render_sidebar():
 
     # Logo
     try:
-        image = Image.open("app/assets/logo.png")
+        image = Image.open("app/assets/logo_.png")
         st.sidebar.image(image, use_container_width=True)
     except Exception:
         st.sidebar.warning("⚠️ Logo introuvable : assets/logo.png")
@@ -37,16 +37,17 @@ def render_sidebar():
             margin-bottom: 0.4rem;
             border-radius: 6px;
             text-align: left;
-            background-color: #f4f4f4;
         }
         .stButton > button:hover {
             background-color: #e0e0e0;
         }
         .selected {
-            background-color: #cfe2ff !important;
+            background-color: #84aee0 !important;
+            opacity: 0.8 !important;
             border: 2px solid #0056b3 !important;
             font-weight: bold;
-            color: #003580 !important;
+            color: #042042 !important;
+            cursor: pointer !important;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -79,7 +80,12 @@ def render_sidebar():
 
     # Infos
     st.sidebar.markdown("---")
-    st.sidebar.markdown(f"Version : `{config.VERSION}`")
+
+    # Centrer la version
+    st.sidebar.markdown(
+        f'<p style="text-align: center;">Version : <code>{config.VERSION}</code></p>',
+        unsafe_allow_html=True
+    )
     st.sidebar.markdown("### Crédits")
     st.sidebar.markdown("""
         - Développé par : [S.Aghiles, M.Amayas]  
