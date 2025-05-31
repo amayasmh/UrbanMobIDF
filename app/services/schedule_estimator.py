@@ -1,5 +1,7 @@
 from datetime import timedelta
+
 import pandas as pd
+
 from app.services.db_connector import get_connection
 
 

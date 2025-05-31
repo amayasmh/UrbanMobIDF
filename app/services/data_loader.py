@@ -1,13 +1,14 @@
+import logging
 import os
 import time
 import zipfile
+
 import pandas as pd
-import logging
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.edge.options import Options as EdgeOptions
+from selenium.webdriver.edge.service import Service as EdgeService
 
 # === Configuration du logging ===
 logging.basicConfig(

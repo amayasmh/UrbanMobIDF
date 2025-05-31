@@ -93,7 +93,7 @@ UrbanMobilDF/
 
 ```bash
 # Clone the repository
-git clone https://github.com/<votre-repo>/UrbanMobilDF.git
+git clone https://github.com/amayasmh/UrbanMobIDF.git
 cd UrbanMobilDF
 
 # Create virtual environment

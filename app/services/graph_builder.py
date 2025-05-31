@@ -1,8 +1,9 @@
-import os
 import logging
+import os
 import pickle
-import pandas as pd
+
 import networkx as nx
+import pandas as pd
 
 GRAPH_PATH = os.path.join(os.path.dirname(__file__), "../../data/graphe_transport.pkl")
 GTFS_ROUTE_TYPES = {

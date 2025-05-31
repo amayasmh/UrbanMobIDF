@@ -10,8 +10,8 @@ from streamlit_folium import st_folium
 
 from app.services.db_connector import get_connection
 from app.services.graph_builder import build_graph
-from app.services.schedule_estimator import estimate_schedule
 from app.services.route_finder import find_best_path
+from app.services.schedule_estimator import estimate_schedule
 
 # === Logging config ===
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
