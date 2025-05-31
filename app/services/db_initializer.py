@@ -62,19 +62,19 @@ def init_db():
     conn = sqlite3.connect(DB_PATH)
 
     files = {
-        "agency": "agency.txt",
-        "booking_rules": "booking_rules.txt",
-        "calendar": "calendar.txt",
-        "calendar_dates": "calendar_dates.txt",
-        "pathways": "pathways.txt",
-        "routes": "routes.txt",
-        "stop_extensions": "stop_extensions.txt",
-        "stop_times": "stop_times.txt",
-        "stops": "stops.txt",
-        "ticketing_deep_links": "ticketing_deep_links.txt",
-        "transfers": "transfers.txt",
-        "trips": "trips.txt",
-        "arrets_lignes": "arrets_lignes.csv"
+        "agency": "datalake/agency.txt",
+        "booking_rules": "datalake/booking_rules.txt",
+        "calendar": "datalake/calendar.txt",
+        "calendar_dates": "datalake/calendar_dates.txt",
+        "pathways": "datalake/pathways.txt",
+        "routes": "datalake/routes.txt",
+        "stop_extensions": "datalake/stop_extensions.txt",
+        "stop_times": "datalake/stop_times.txt",
+        "stops": "datalake/stops.txt",
+        "ticketing_deep_links": "datalake/ticketing_deep_links.txt",
+        "transfers": "datalake/transfers.txt",
+        "trips": "datalake/trips.txt",
+        "arrets_lignes": "datalake/arrets_lignes.csv"
     }
 
     for table_name, file_name in files.items():
