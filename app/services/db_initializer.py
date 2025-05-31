@@ -1,8 +1,12 @@
 import os
 import shutil
 import sqlite3
-
 import pandas as pd
+import logging
+
+# === Configuration du logging ===
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 # === Chemins ===
 BASE_DIR = os.path.dirname(__file__)
@@ -22,41 +26,42 @@ def table_exists(conn, table_name):
 def create_indexes(conn):
     cursor = conn.cursor()
     try:
+        logger.info("Création des index...")
         if table_exists(conn, "stop_times"):
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_stop_times_stop_id ON stop_times (stop_id);")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_stop_times_trip_id ON stop_times (trip_id);")
         if table_exists(conn, "stops"):
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_stops_stop_name ON stops (stop_name);")
         conn.commit()
-        print("✅ Index créés avec succès.")
+        logger.info("✅ Index créés avec succès.")
     except sqlite3.Error as e:
-        print(f"❌ Erreur lors de la création des index : {e}")
+        logger.error(f"❌ Erreur lors de la création des index : {e}")
 
 # === Vérifie l'espace disque disponible ===
 def check_disk_space():
     total, used, free = shutil.disk_usage(DATA_DIR)
     free_mb = free // (1024 * 1024)
-    print(f"💾 Espace disque libre : {free_mb} Mo")
+    logger.info(f"💾 Espace disque libre : {free_mb} Mo")
     if free_mb < 100:
-        print("⚠️ Espace disque critique (< 100 Mo) ! Risque d'échec.")
+        logger.warning("⚠️ Espace disque critique (< 100 Mo) ! Risque d'échec.")
     return free_mb
 
 # === Initialise la base et charge les données ===
 def init_db():
-    print("🚀 Initialisation de la base de données...")
+    logger.info("🚀 Initialisation de la base de données...")
 
     free_mb = check_disk_space()
     if free_mb < 50:
-        print("🛑 Espace disque insuffisant pour continuer.")
+        logger.error("🛑 Espace disque insuffisant pour continuer.")
         return
 
-    # Supprimer l'ancienne base si elle est corrompue (optionnel)
+    # Supprimer l'ancienne base si elle existe
     if os.path.exists(DB_PATH):
         try:
             os.remove(DB_PATH)
-            print("🗑️ Ancienne base supprimée.")
+            logger.info("🗑️ Ancienne base supprimée.")
         except Exception as e:
-            print(f"❌ Impossible de supprimer l'ancienne base : {e}")
+            logger.error(f"❌ Impossible de supprimer l'ancienne base : {e}")
             return
 
     conn = sqlite3.connect(DB_PATH)
@@ -81,7 +86,7 @@ def init_db():
         file_path = os.path.join(DATA_DIR, file_name)
 
         if not os.path.exists(file_path):
-            print(f"⚠️  Fichier manquant : {file_name}")
+            logger.warning(f"⚠️  Fichier manquant : {file_name}")
             continue
 
         sep = ';' if file_name.endswith('.csv') else ','
@@ -91,19 +96,20 @@ def init_db():
             first_chunk = True
             total_rows = 0
 
+            logger.info(f"Chargement de {file_name} dans la table `{table_name}`...")
             for chunk in pd.read_csv(file_path, sep=sep, chunksize=chunk_size, encoding='utf-8', low_memory=False):
                 chunk.to_sql(table_name, conn, if_exists='replace' if first_chunk else 'append', index=False)
                 total_rows += len(chunk)
                 first_chunk = False
 
-            print(f"✅ Table `{table_name}` chargée avec succès ({total_rows} lignes).")
+            logger.info(f"✅ Table `{table_name}` chargée avec succès ({total_rows} lignes).")
 
         except Exception as e:
-            print(f"❌ Erreur lors du chargement de `{file_name}` : {e}")
+            logger.error(f"❌ Erreur lors du chargement de `{file_name}` : {e}")
 
     create_indexes(conn)
     conn.close()
-    print("🎯 Base de données initialisée avec succès !")
+    logger.info("🎯 Base de données initialisée avec succès !")
 
 # === Lancement direct ===
 if __name__ == "__main__":

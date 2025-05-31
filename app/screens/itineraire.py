@@ -1,6 +1,7 @@
-# fichier : app/screens/itineraire.py
-
-from datetime import datetime
+import logging
+import os
+import pickle
+from datetime import datetime, timedelta
 
 import folium
 import pandas as pd
@@ -9,13 +10,22 @@ from streamlit_folium import st_folium
 
 from app.services.db_connector import get_connection
 from app.services.graph_builder import build_graph
-from app.services.route_finder import find_best_route
+from app.services.schedule_estimator import estimate_schedule
+from app.services.route_finder import find_best_path
 
+# === Logging config ===
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
+# === Paths ===
+BASE_DIR = os.path.dirname(__file__)
+DATA_DIR = os.path.join(BASE_DIR, "../../data")
+DB_PATH = os.path.join(DATA_DIR, "databases/mobility.db")
+GRAPH_PATH = os.path.join(DATA_DIR, "graphe_transport.pkl")
 
 def run():
     st.title("🗺️ Recherche d'Itinéraire")
 
-    # ---------- Chargement des données ----------
     @st.cache_data
     def load_data_from_db():
         conn = get_connection()
@@ -23,9 +33,8 @@ def run():
         stop_times = pd.read_sql("SELECT * FROM stop_times", conn)
         trips = pd.read_sql("SELECT * FROM trips", conn)
         routes = pd.read_sql("SELECT * FROM routes", conn)
-        transfers = pd.read_sql("SELECT * FROM transfers", conn)
         conn.close()
-        return stops, stop_times, trips, routes, transfers
+        return stops, stop_times, trips, routes
 
     @st.cache_data
     def get_stops():
@@ -34,49 +43,6 @@ def run():
         conn.close()
         return df
 
-    @st.cache_data
-    def search_trips_direct(start_id, end_id, time_str):
-        conn = get_connection()
-        query = """
-            SELECT DISTINCT
-                t.trip_id,
-                r.route_long_name,
-                s_end.stop_name AS destination_name,
-                s1.departure_time,
-                s2.arrival_time
-            FROM stop_times s1
-            JOIN stop_times s2 ON s1.trip_id = s2.trip_id
-            JOIN trips t ON t.trip_id = s1.trip_id
-            JOIN routes r ON r.route_id = t.route_id
-            JOIN stops s_end ON s_end.stop_id = s2.stop_id
-            WHERE s1.stop_id = ? AND s2.stop_id = ?
-              AND s1.stop_sequence < s2.stop_sequence
-              AND s1.departure_time >= ?
-            ORDER BY s1.departure_time ASC
-        """
-        df = pd.read_sql_query(query, conn, params=(start_id, end_id, time_str))
-        conn.close()
-        return df
-
-    @st.cache_data
-    def get_intermediate_stops(trip_id, start_id, end_id):
-        conn = get_connection()
-        query = """
-            SELECT s.stop_name, s.stop_lat, s.stop_lon, st.departure_time
-            FROM stop_times st
-            JOIN stops s ON s.stop_id = st.stop_id
-            WHERE st.trip_id = ?
-              AND st.stop_sequence BETWEEN
-                  (SELECT stop_sequence FROM stop_times WHERE trip_id = ? AND stop_id = ?)
-                  AND
-                  (SELECT stop_sequence FROM stop_times WHERE trip_id = ? AND stop_id = ?)
-            ORDER BY st.stop_sequence
-        """
-        df = pd.read_sql_query(query, conn, params=(trip_id, trip_id, start_id, trip_id, end_id))
-        conn.close()
-        return df
-
-    # ---------- Interface utilisateur ----------
     stops_df = get_stops()
     stop_names = stops_df['stop_name'].sort_values().unique()
 
@@ -95,89 +61,74 @@ def run():
     start_id = stops_df[stops_df['stop_name'] == start_name]['stop_id'].values[0]
     end_id = stops_df[stops_df['stop_name'] == end_name]['stop_id'].values[0]
 
-    # ---------- Itinéraire direct ----------
-    if st.button("🔍 Itinéraire direct"):
-        if start_id == end_id:
-            st.error("❗ L'arrêt de départ et d'arrivée doivent être différents.")
-        else:
-            trips = search_trips_direct(start_id, end_id, selected_time.strftime("%H:%M:%S"))
-            if trips.empty:
-                st.warning("⚠️ Aucun itinéraire direct trouvé.")
-            else:
-                trip = trips.iloc[0]
-                steps = get_intermediate_stops(trip['trip_id'], start_id, end_id)
+    logger.info(f"Itinéraire demandé : {start_name} ({start_id}) → {end_name} ({end_id}) à {selected_time}")
 
-                st.session_state['trip_result'] = {
-                    'mode': 'direct',
-                    'trip': trip.to_dict(),
-                    'steps': steps.to_dict(orient='records'),
-                    'start_name': start_name,
-                    'end_name': end_name
-                }
-
-    # ---------- Itinéraire optimisé ----------
     if st.button("🔀 Itinéraire optimisé (avec correspondances)"):
-        st.info("📦 Chargement des données...")
-        stops, stop_times, trips, routes, transfers = load_data_from_db()
-
-        st.info("🧱 Construction du graphe...")
-        G = build_graph(stops, stop_times, trips, routes, transfers)
-
-        st.info("🧭 Recherche du chemin optimal avec correspondances...")
-        result = find_best_route(G, start_id, selected_time.strftime("%H:%M:%S"), end_id)
-
-        if result:
-            st.success(f"✅ Trajet trouvé en {result['total_duration_min']} minutes avec correspondances")
-            st.session_state['trip_result'] = {
-                'mode': 'optimal',
-                'path': result['path'],
-                'steps': result['steps'],
-                'total_duration': result['total_duration_min'],
-                'start_name': start_name,
-                'end_name': end_name
-            }
+        stops, stop_times, trips, routes = load_data_from_db()
+        if os.path.exists(GRAPH_PATH):
+            with open(GRAPH_PATH, "rb") as f:
+                G, name_to_id, id_to_name = pickle.load(f)
         else:
-            st.warning("❌ Aucun itinéraire trouvé avec correspondances.")
+            G, name_to_id, id_to_name = build_graph()
 
-    # ---------- Résultats ----------
-    if 'trip_result' in st.session_state:
-        result = st.session_state['trip_result']
-        st.divider()
+        if start_id not in G.nodes or end_id not in G.nodes:
+            st.warning("🚫 Départ ou arrivée non trouvés dans le graphe.")
+            return
 
-        if result['mode'] == 'direct':
-            trip = result['trip']
-            steps = pd.DataFrame(result['steps'])
-            st.success(f"🚍 Itinéraire direct : {trip['route_long_name']} → {trip['destination_name']}")
-            st.markdown(f"""
-            - 🕒 **Départ** : {trip['departure_time']}
-            - 🕒 **Arrivée** : {trip['arrival_time']}
-            - ⏱️ **Durée estimée** : {int((pd.to_datetime(trip['arrival_time']) - pd.to_datetime(trip['departure_time'])).total_seconds() // 60)} min
-            - 🚏 **Nombre d’arrêts** : {len(steps)}
-            """)
-            st.dataframe(steps[['stop_name', 'departure_time']])
+        path = find_best_path(G, start_id, end_id)
+        if not path:
+            st.error("❌ Aucun chemin trouvé dans le graphe.")
+            return
 
-            m = folium.Map(location=[steps['stop_lat'].mean(), steps['stop_lon'].mean()], zoom_start=13)
-            for idx, row in steps.iterrows():
-                color = "blue"
-                if row['stop_name'] == result['start_name']:
-                    color = "green"
-                elif row['stop_name'] == result['end_name']:
-                    color = "red"
+        departure_dt = datetime.combine(selected_date, selected_time)
+        schedule = estimate_schedule(path, departure_dt, stop_times, trips, routes)
+        total_duration_min = (schedule[-1]['arrival_dt'] - schedule[0]['departure_dt']).seconds // 60
+
+        st.session_state['itineraire_result'] = {
+            "schedule": schedule,
+            "start_name": start_name,
+            "end_name": end_name,
+            "departure_time": selected_time,
+            "arrival_time": schedule[-1]['arrival_dt'].strftime('%H:%M'),
+            "duration": total_duration_min
+        }
+
+    if "itineraire_result" in st.session_state:
+        result = st.session_state["itineraire_result"]
+        schedule = result["schedule"]
+
+        st.success(f"🧭 Trajet trouvé en {result['duration']} minutes avec correspondances")
+        st.markdown(f"""
+        - 🟢 **Départ** : {result['start_name']} à {schedule[0]['departure_dt'].strftime('%H:%M')}
+        - 🔴 **Arrivée** : {result['end_name']} à {result['arrival_time']}
+        - ⌛ **Durée estimée** : {result['duration']} minutes
+        - 🧩 **Nombre d'étapes** : {len(schedule)}
+        """)
+
+        df = pd.DataFrame([{
+            "Arrêt": s['stop_name'],
+            "Mode": s['mode'],
+            "Ligne": s['route_name'],
+            "Départ": s['departure_dt'].strftime("%H:%M"),
+            "Arrivée": s['arrival_dt'].strftime("%H:%M"),
+            "Durée (min)": s['duration_min']
+        } for s in schedule])
+        st.dataframe(df)
+
+        st.markdown("### 🗺️ Trajet sur la carte")
+        coords = [(s['lat'], s['lon']) for s in schedule if s['lat'] and s['lon']]
+        if not coords:
+            st.warning("❗ Aucune position géographique trouvée pour le trajet.")
+        else:
+            m = folium.Map(location=coords[0], zoom_start=13)
+            for idx, step in enumerate(schedule):
+                if not step['lat'] or not step['lon']:
+                    continue
+                color = "green" if idx == 0 else "red" if idx == len(schedule) - 1 else "blue"
                 folium.Marker(
-                    location=[row['stop_lat'], row['stop_lon']],
-                    popup=row['stop_name'],
+                    location=[step['lat'], step['lon']],
+                    popup=f"{step['stop_name']} ({step['departure_dt'].strftime('%H:%M')} → {step['arrival_dt'].strftime('%H:%M')})\nLigne: {step['route_name']}",
                     icon=folium.Icon(color=color)
                 ).add_to(m)
-            folium.PolyLine(steps[['stop_lat', 'stop_lon']].values.tolist(), color="blue").add_to(m)
+            folium.PolyLine(coords, color="blue", weight=4).add_to(m)
             st_folium(m, use_container_width=True)
-
-        elif result['mode'] == 'optimal':
-            steps = result['steps']
-            st.success(f"🧭 Itinéraire optimal trouvé en {result['total_duration']} minutes avec correspondances")
-            for i, step in enumerate(steps):
-                emoji = "🚶" if step['type'] == 'transfer' else "🚌"
-                st.markdown(
-                    f"**Étape {i+1}** : {emoji} `{step['route_name']}` "
-                    f"→ {step['from_stop']} → {step['to_stop']} "
-                    f"({step['duration_min']} min, {step['departure_time']} → {step['arrival_time']})"
-                )

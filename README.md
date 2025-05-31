@@ -1,52 +1,153 @@
-# Urban-Mobility-Optimization
-____________________________________________________________________________________________________________________________________________________________________________________
-## Introduction
-The challenges of urban mobility, such as traffic jams, road accidents, and the inefficiency of public transportation, are major concerns in modern urban areas. With the increasing access to open data from platforms such as Open Data Soft, Data.gov, and the European Data Portal, it is becoming possible to leverage this information to optimize traffic flows and improve transportation systems.
+# 🚍 Urban-Mobility-Optimization
 
-## Problem Statement
-This project aims to provide real-time predictive traffic conditions and intelligent recommendations based on customized scenarios to improve urban mobility. By using advanced predictive models, such as Recurrent Neural Networks (RNN) and hybrid models combining statistical approaches (like ARIMA) with deep learning, the solution seeks to help traffic managers and citizens make informed decisions ahead of time, mitigating congestion and optimizing transportation networks. Additionally, personalized recommendations for private drivers, public transportation, and urban managers will improve decision-making, reduce traffic jams, and facilitate efficient resource allocation.
-____________________________________________________________________________________________________________________________________________________________________________________
-## Data sources
-- APIs :
-  - [PRIM - Prochains passages - Requpête globale](https://prim.iledefrance-mobilites.fr/fr/apis/idfm-ivtr-requete_globale)
-  - [PRIM - Prochains passages - Requpête unitaire](https://prim.iledefrance-mobilites.fr/fr/apis/idfm-ivtr-requete_unitaire)
-- Datasets :
-  - [Référentiels des arrêts](https://data.iledefrance-mobilites.fr/explore/dataset/arrets/export/?ref=prim.iledefrance-mobilites.fr)
-  - [Dataset à automatiser ](https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/offre-horaires-tc-gtfs-idfm)
-____________________________________________________________________________________________________________________________________________________________________________________
-## Best Practices (First : English as a programming language)
-- Follow naming conventions :
-  - Use lowercase letters and underscores to separate words in file names and variables
-  - Use meaningful names for files, variables, and functions
-  - Use verbs for function names and nouns for arguments
-- Add comments and docstrings :
-  - Use docstrings to explain what your functions do and what they return
-  - Always use comments to explain your code
-- Use the main function to run your code
-- For clean code :
-  - Use a virtual environment for your project : `python -m venv venv`
-  - Use a `.gitignore` file to avoid uploading unnecessary files to the repository
-  - Use the `requirements.txt` file to list all the packages needed to run your code : `pip freeze > requirements.txt`
-  - Upload the README.md file if necessary
-  - Use the isort and black libraries to format your code : `isort black <filename>.py` and `black <filename>.py`
-  - Use the flake8 library to check your code for PEP 8 compliance : `flake8 <filename>.py` and correct the errors
-  - Use logging to log information, warnings, and errors and print them to the console
+---
 
-## Git
-- Create a new branch for each feature you are working on
-- Commit your changes with a meaningful message
-- Push your changes to develop branch and create a pull request
-- Review the code with your teammate
-- Name the pull request with the name of the feature you are working on and add a description
-- Merge the pull request if everything is correct and delete the branch
+## 🌐 Introduction
 
-## Installation
-- Clone the repository : `git clone
-- Install the required packages : `pip install -r requirements.txt`
-- Run the .exe file
-- Or streamlit run app/main.py
-- A navigation window will open to the streamlit interface
-____________________________________________________________________________________________________________________________________________________________________________________
-## Contributors
+Urban mobility faces persistent challenges such as congestion, accidents, and inefficiencies in public transport. With the rise of open data platforms (Open Data Soft, Data.gov, European Data Portal), it is now possible to harness these data sources to optimize transportation flows and improve commuter experiences.
+
+---
+
+## ❓ Problem Statement
+
+This project aims to provide **real-time traffic predictions** and **intelligent routing recommendations** based on contextual scenarios. Using advanced predictive models like **Recurrent Neural Networks (RNNs)** and **hybrid approaches (ARIMA + deep learning)**, it empowers:
+
+- Traffic managers to make proactive decisions.
+- Citizens to reduce commute times.
+- Urban planners to better allocate resources.
+
+Personalized recommendations for both private and public transport users help **reduce traffic jams**, improve **route efficiency**, and **enhance citywide mobility**.
+
+---
+
+## 📦 Key Features
+
+- ✅ Download & process GTFS data from IDFM
+- 🧾 Parse and load GTFS data into a **SQLite database**
+- 🧠 Build a **weighted directed graph** of the transportation network
+- 🔍 Compute **optimal routes** using shortest path algorithms
+- ⚡ Streamlit-based user interface (dashboard, alerts, predictions)
+- 🔮 Ready for integration with **ML predictions** (RNN, ARIMA)
+
+---
+
+## 📂 Project Structure
+
+```
+UrbanMobilDF/
+├── app/
+│   ├── screens/               # Streamlit screens (Accueil, Alerte, etc.)
+│   ├── services/              # Business logic: DB, graph, route finding
+│   ├── ui/                    # UI components like sidebar
+│   └── assets/                # Logo and static resources
+├── data/
+│   ├── archives/              # Downloaded ZIP files
+│   ├── datalake/              # Extracted & parsed files
+│   └── databases/             # mobility.db
+├── models/                    # ML models (planned)
+├── .env                       # Environment variables
+├── requirements.txt           # Python dependencies
+├── README.md                  # You’re reading it!
+```
+
+---
+
+## 🗃️ Data Sources
+
+- **APIs**
+  - [PRIM – Requête globale](https://prim.iledefrance-mobilites.fr/fr/apis/idfm-ivtr-requete_globale)
+  - [PRIM – Requête unitaire](https://prim.iledefrance-mobilites.fr/fr/apis/idfm-ivtr-requete_unitaire)
+- **Datasets**
+  - [Référentiels des arrêts](https://data.iledefrance-mobilites.fr/explore/dataset/arrets/export)
+  - [GTFS horaires IDFM](https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/offre-horaires-tc-gtfs-idfm)
+
+---
+
+## 🧠 Best Practices
+
+- Use **English** for naming and code.
+- Respect naming conventions:
+  - `snake_case` for files and variables
+  - Verb-based names for functions
+- Document your code:
+  - Add **docstrings** and inline comments
+- Structure execution via `if __name__ == "__main__"`
+- Format and lint:
+  - `isort`, `black`, `flake8`
+- Use `logging` for events, errors, and debug
+- Keep code clean using `.gitignore`, `venv`, `requirements.txt`
+
+---
+
+## 🔁 Git Workflow
+
+- Create a branch per feature
+- Use **meaningful commit messages**
+- Open a **pull request (PR)** to `develop`
+- Review and merge only after validation
+- Delete branches after merging
+
+---
+
+## ⚙️ Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/<votre-repo>/UrbanMobilDF.git
+cd UrbanMobilDF
+
+# Create virtual environment
+python -m venv env
+source env/bin/activate  # Unix
+env\Scripts\activate     # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Setup environment variables
+cp .env.example .env
+# Update EMAIL, PASSWORD, EDGE_DRIVER_PATH in .env
+
+# Option 1: Run Streamlit app
+streamlit run app/menu.py
+
+# Option 2: Run modules individually if needed
+python app/services/data_loader.py
+python app/services/db_initializer.py
+```
+
+---
+
+## 🧪 Main Modules
+
+| Module                  | Description                                             |
+|------------------------|---------------------------------------------------------|
+| `data_loader.py`       | Download GTFS data and load CSV files                  |
+| `db_initializer.py`    | Populate SQLite database from GTFS files               |
+| `db_connector.py`      | Manage DB connection and performance indexes           |
+| `graph_builder.py`     | Build a NetworkX graph from GTFS trips/stops           |
+| `route_finder.py`      | Compute best path between two stop_ids                 |
+| `schedule_estimator.py`| (Planned) ML-based ETA and prediction module           |
+| `screens/*.py`         | User-facing UI (Streamlit screens)                     |
+
+---
+
+## 🎯 Objectives Ahead
+
+- Integrate **prediction models** for real-time traffic
+- Build **interactive map visualizations**
+- Add **alerts and notification features**
+- Support **multi-modal routing** and **priority management**
+
+---
+
+## 👥 Contributors
+
 - [Aghiles SAGHIR](https://www.linkedin.com/in/aghiles-s)
 - [Amayas MAHMOUDI](https://www.linkedin.com/in/amayas-mhd)
+
+---
+
+## 📜 License
+
+Project under development for educational and exploratory purposes. License to be defined.
