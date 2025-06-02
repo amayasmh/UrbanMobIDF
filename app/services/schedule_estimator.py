@@ -1,11 +1,11 @@
 from datetime import timedelta
-
 import pandas as pd
 
 from app.services.db_connector import get_connection
 
 
-def estimate_schedule(path, departure_dt, stop_times, trips, routes):
+
+def estimate_schedule(path, departure_dt, stop_times, trips, routes, G):
     schedule = []
     current_time = departure_dt
 
@@ -28,17 +28,29 @@ def estimate_schedule(path, departure_dt, stop_times, trips, routes):
         from_stop = path[i]
         to_stop = path[i + 1]
 
-        match = trip_lookup[(trip_lookup['stop_id'] == from_stop) & (trip_lookup['next_stop_id'] == to_stop)]
-        if match.empty:
-            continue
-        row = match.iloc[0]
+        edge_data = G.get_edge_data(from_stop, to_stop) if G else {}
+        is_transfer = edge_data.get("mode") == "Correspondance"
+        transfer_time = edge_data.get("transfer_time", 300) if is_transfer else None
 
-        try:
-            duration_sec = max(
-                pd.to_timedelta(row['next_arrival_time']).total_seconds() -
-                pd.to_timedelta(row['departure_time']).total_seconds(), 60)
-        except Exception:
-            duration_sec = 120
+        if is_transfer:
+            duration_sec = max(transfer_time, 60)
+            route_name = "Transfert"
+            mode = "Correspondance"
+        else:
+            match = trip_lookup[(trip_lookup['stop_id'] == from_stop) & (trip_lookup['next_stop_id'] == to_stop)]
+            if match.empty:
+                continue
+            row = match.iloc[0]
+
+            try:
+                duration_sec = max(
+                    pd.to_timedelta(row['next_arrival_time']).total_seconds() -
+                    pd.to_timedelta(row['departure_time']).total_seconds(), 60)
+            except Exception:
+                duration_sec = 120
+
+            route_name = row.get("route_short_name", "?")
+            mode = route_type_label(row.get("route_type"))
 
         stop_name = stops_dict.get(from_stop, {}).get("stop_name", from_stop)
         lat = stops_dict.get(from_stop, {}).get("stop_lat", None)
@@ -50,8 +62,8 @@ def estimate_schedule(path, departure_dt, stop_times, trips, routes):
             "departure_dt": current_time,
             "arrival_dt": current_time + timedelta(seconds=duration_sec),
             "duration_min": int(duration_sec // 60),
-            "route_name": row.get("route_short_name", "?"),
-            "mode": route_type_label(row.get("route_type")),
+            "route_name": route_name,
+            "mode": mode,
             "stop_name": stop_name,
             "lat": lat,
             "lon": lon,

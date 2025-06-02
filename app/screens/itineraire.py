@@ -33,8 +33,9 @@ def run():
         stop_times = pd.read_sql("SELECT * FROM stop_times", conn)
         trips = pd.read_sql("SELECT * FROM trips", conn)
         routes = pd.read_sql("SELECT * FROM routes", conn)
+        transfers = pd.read_sql("SELECT * FROM transfers", conn)
         conn.close()
-        return stops, stop_times, trips, routes
+        return stops, stop_times, trips, routes, transfers
 
     @st.cache_data
     def get_stops():
@@ -64,12 +65,12 @@ def run():
     logger.info(f"Itinéraire demandé : {start_name} ({start_id}) → {end_name} ({end_id}) à {selected_time}")
 
     if st.button("🔀 Itinéraire optimisé (avec correspondances)"):
-        stops, stop_times, trips, routes = load_data_from_db()
+        stops, stop_times, trips, routes, transfers = load_data_from_db()
         if os.path.exists(GRAPH_PATH):
             with open(GRAPH_PATH, "rb") as f:
                 G, name_to_id, id_to_name = pickle.load(f)
         else:
-            G, name_to_id, id_to_name = build_graph()
+            G, name_to_id, id_to_name = build_graph(stops, stop_times, trips, routes, transfers)
 
         if start_id not in G.nodes or end_id not in G.nodes:
             st.warning("🚫 Départ ou arrivée non trouvés dans le graphe.")
@@ -81,7 +82,7 @@ def run():
             return
 
         departure_dt = datetime.combine(selected_date, selected_time)
-        schedule = estimate_schedule(path, departure_dt, stop_times, trips, routes)
+        schedule = estimate_schedule(path, departure_dt, stop_times, trips, routes, G)
         total_duration_min = (schedule[-1]['arrival_dt'] - schedule[0]['departure_dt']).seconds // 60
 
         st.session_state['itineraire_result'] = {
