@@ -12,6 +12,8 @@ from app.services.db_connector import get_connection
 from app.services.graph_builder import build_graph
 from app.services.route_finder import find_best_path
 from app.services.schedule_estimator import estimate_schedule
+from app.utils import calculate_co2, get_weather
+
 
 # === Logging config ===
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -98,7 +100,23 @@ def run():
         result = st.session_state["itineraire_result"]
         schedule = result["schedule"]
 
-        st.success(f"🧭 Trajet trouvé en {result['duration']} minutes avec correspondances")
+        st.success(f"🧭 Trajet trouvé en {result['duration']} minutes")
+        # === Empreinte carbone et météo ===
+        co2_total = calculate_co2(schedule)
+        last_step = schedule[-1]
+        arrival_dt = last_step['arrival_dt']
+        arrival_lat = last_step.get("lat")
+        arrival_lon = last_step.get("lon")
+
+        weather_text, _ = get_weather(arrival_lat, arrival_lon, arrival_dt)
+
+        # Affichage pop-informative
+        with st.expander("📍 Informations environnementales & météo à l’arrivée"):
+            st.markdown(f"**🌍 Empreinte carbone estimée** : `{co2_total:.0f} g CO₂`")
+            st.markdown(f"**🌦️ Météo prévue à l’arrivée** : {weather_text}")
+            if "pluie" in weather_text.lower():
+                st.info("🌧️ **Pluie prévue à l’arrivée** — prévoyez un parapluie ! ☂️")
+
         st.markdown(f"""
         - 🟢 **Départ** : {result['start_name']} à {schedule[0]['departure_dt'].strftime('%H:%M')}
         - 🔴 **Arrivée** : {result['end_name']} à {result['arrival_time']}

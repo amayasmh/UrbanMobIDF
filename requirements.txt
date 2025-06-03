@@ -2,7 +2,7 @@ black
 flake8
 isort
 httpx
-logging
+logging~=0.4.9.6
 streamlit~=1.45.0
 pandas~=2.2.3
 networkx~=3.4.2
@@ -14,3 +14,5 @@ pillow~=11.2.1
 streamlit_folium~=0.25.0
 selenium~=4.32.0
 python-dotenv~=1.0.0
+streamlit_folium~=0.25.0
+requests~=2.32.3
