@@ -68,6 +68,7 @@ def render_sidebar():
                 set_current_page(page["name"])
                 st.rerun()
 
+
     # Contact
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Contact")

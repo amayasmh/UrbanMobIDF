@@ -13,7 +13,7 @@ from app.services.graph_builder import build_graph
 from app.services.route_finder import find_best_path
 from app.services.schedule_estimator import estimate_schedule
 from app.utils import calculate_co2, get_weather
-
+from app.services.congestion_handler import predict_congested_stops, should_avoid_congestion
 
 # === Logging config ===
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -24,6 +24,7 @@ BASE_DIR = os.path.dirname(__file__)
 DATA_DIR = os.path.join(BASE_DIR, "../../data")
 DB_PATH = os.path.join(DATA_DIR, "databases/mobility.db")
 GRAPH_PATH = os.path.join(DATA_DIR, "graphe_transport.pkl")
+
 
 def run():
     st.title("🗺️ Recherche d'Itinéraire")
@@ -57,7 +58,7 @@ def run():
 
     col3, col4 = st.columns(2)
     with col3:
-        selected_date = st.date_input("📅 Date", value=datetime.today())
+        selected_date = st.date_input("🗕️ Date", value=datetime.today())
     with col4:
         selected_time = st.time_input("🕒 Heure", value=datetime.now().time())
 
@@ -65,6 +66,8 @@ def run():
     end_id = stops_df[stops_df['stop_name'] == end_name]['stop_id'].values[0]
 
     logger.info(f"Itinéraire demandé : {start_name} ({start_id}) → {end_name} ({end_id}) à {selected_time}")
+
+    avoid_congestion = st.checkbox("⚠️ Privilégier un itinéraire sans congestion (si possible)", value=True)
 
     if st.button("🔀 Itinéraire optimisé (avec correspondances)"):
         stops, stop_times, trips, routes, transfers = load_data_from_db()
@@ -76,6 +79,29 @@ def run():
 
         if start_id not in G.nodes or end_id not in G.nodes:
             st.warning("🚫 Départ ou arrivée non trouvés dans le graphe.")
+            return
+
+        congested_stops = predict_congested_stops()
+
+        if avoid_congestion:
+            st.info("⚠️ Analyse des congestions en cours...")
+
+            congested_stops = [n for n in congested_stops if n not in (start_id, end_id)]
+
+            penalized = 0
+            for u, v, data in list(G.edges(data=True)):
+                if u in congested_stops or v in congested_stops:
+                    G[u][v]["weight"] *= 2  # pénalisation légère
+                    G[u][v]["congestion_penalty"] = True
+                    penalized += 1
+
+            logger.info(f"Pénalisation appliquée à {penalized} arêtes congestionnées.")
+
+        if start_id not in G.nodes:
+            st.error(f"⛔ Le point de départ sélectionné ({start_id}) n’est pas dans le graphe.")
+            return
+        if end_id not in G.nodes:
+            st.error(f"⛔ Le point d’arrivée sélectionné ({end_id}) n’est pas dans le graphe.")
             return
 
         path = find_best_path(G, start_id, end_id)
@@ -93,15 +119,16 @@ def run():
             "end_name": end_name,
             "departure_time": selected_time,
             "arrival_time": schedule[-1]['arrival_dt'].strftime('%H:%M'),
-            "duration": total_duration_min
+            "duration": total_duration_min,
+            "congestion_avoidance": avoid_congestion
         }
 
     if "itineraire_result" in st.session_state:
         result = st.session_state["itineraire_result"]
         schedule = result["schedule"]
 
-        st.success(f"🧭 Trajet trouvé en {result['duration']} minutes")
-        # === Empreinte carbone et météo ===
+        st.success(f"🧱 Trajet trouvé en {result['duration']} minutes")
+
         co2_total = calculate_co2(schedule)
         last_step = schedule[-1]
         arrival_dt = last_step['arrival_dt']
@@ -110,17 +137,24 @@ def run():
 
         weather_text, _ = get_weather(arrival_lat, arrival_lon, arrival_dt)
 
-        # Affichage pop-informative
         with st.expander("📍 Informations environnementales & météo à l’arrivée"):
             st.markdown(f"**🌍 Empreinte carbone estimée** : `{co2_total:.0f} g CO₂`")
-            st.markdown(f"**🌦️ Météo prévue à l’arrivée** : {weather_text}")
+            st.markdown(f"**☀️ Météo prévue à l’arrivée** : {weather_text}")
             if "pluie" in weather_text.lower():
-                st.info("🌧️ **Pluie prévue à l’arrivée** — prévoyez un parapluie ! ☂️")
+                st.info("🌧️ **Pluie prévue à l’arrivée** — prévoyez un parapluie ! ☔️")
+        # Enrigistrer le résultat de l'itinéraire dans data/emission_log.csv
+        if not os.path.exists("data/emission_log.csv"):
+            with open("data/emission_log.csv", "w") as f:
+                f.write("datetime,departure_time,arrival_time,duration,co2_total,start_name,end_name,congestion_avoidance\n")
+        with open("data/emission_log.csv", "a") as f:
+            f.write(f"{datetime.now().isoformat()},{result['departure_time']},{result['arrival_time']},"
+                    f"{result['duration']},{co2_total},{result['start_name']},{result['end_name']},"
+                    f"{result['congestion_avoidance']}\n")
 
         st.markdown(f"""
         - 🟢 **Départ** : {result['start_name']} à {schedule[0]['departure_dt'].strftime('%H:%M')}
         - 🔴 **Arrivée** : {result['end_name']} à {result['arrival_time']}
-        - ⌛ **Durée estimée** : {result['duration']} minutes
+        - ⏱️ **Durée estimée** : {result['duration']} minutes
         - 🧩 **Nombre d'étapes** : {len(schedule)}
         """)
 

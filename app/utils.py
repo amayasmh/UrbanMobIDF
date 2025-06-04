@@ -21,8 +21,8 @@ def set_current_page(page_name):
 
 def calculate_co2(schedule):
     co2_by_mode = {
-        "Train": 14, "Métro": 3, "Tram": 4,
-        "Bus": 89, "Trolleybus": 65, "Navette": 110,
+        "Train": 10.4, "Métro": 4.1, "Tram": 3.7,
+        "Bus": 91, "Trolleybus": 65, "Navette": 110,
         "Correspondance": 0
     }
     total = 0
