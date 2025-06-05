@@ -108,6 +108,16 @@ pip install -r requirements.txt
 cp .env.example .env
 # Update EMAIL, PASSWORD, EDGE_DRIVER_PATH in .env
 
+# Install Edge WebDriver
+pip install msedge-selenium-tools selenium
+# Download and install Microsoft Edge WebDriver
+
+# Launch data loader to download GTFS data
+python app/services/data_loader.py
+
+# Initialize the database
+python app/services/db_initializer.py
+
 # Option 1: Run Streamlit app
 streamlit run app/menu.py
 
