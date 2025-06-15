@@ -10,7 +10,7 @@ Urban mobility faces persistent challenges such as congestion, accidents, and in
 
 ## ❓ Problem Statement
 
-This project aims to provide **real-time traffic predictions** and **intelligent routing recommendations** based on contextual scenarios. Using advanced predictive models like **Recurrent Neural Networks (RNNs)** and **hybrid approaches (ARIMA + deep learning)**, it empowers:
+This project aims to provide **real-time traffic predictions** and **intelligent routing recommendations** based on contextual scenarios. Using advanced predictive models like **Random Forests** and **Dijkstra's algorithm**, it empowers:
 
 - Traffic managers to make proactive decisions.
 - Citizens to reduce commute times.
@@ -44,7 +44,6 @@ UrbanMobilDF/
 │   ├── archives/              # Downloaded ZIP files
 │   ├── datalake/              # Extracted & parsed files
 │   └── databases/             # mobility.db
-├── models/                    # ML models (planned)
 ├── .env                       # Environment variables
 ├── requirements.txt           # Python dependencies
 ├── README.md                  # You’re reading it!
@@ -107,6 +106,9 @@ pip install -r requirements.txt
 # Setup environment variables
 cp .env.example .env
 # Update EMAIL, PASSWORD, EDGE_DRIVER_PATH in .env
+EMAIL="Your Email Here to use IDFM APIs, if you don't have one, create an account on https://prim.iledefrance-mobilites.fr/fr"
+PASSWORD="Your Password Here to use IDFM APIs, if you don't have one, create an account on https://prim.iledefrance-mobilites.fr/fr"
+EDGE_DRIVER_PATH="/path/to/your/msedgedriver"  # Path to Edge WebDriver
 
 # Install Edge WebDriver
 pip install msedge-selenium-tools selenium
@@ -137,22 +139,22 @@ streamlit run app/Menu.py
 
 ## 🧪 Main Modules
 
-| Module                  | Description                                             |
-|------------------------|---------------------------------------------------------|
-| `data_loader.py`       | Download GTFS data and load CSV files                  |
-| `db_initializer.py`    | Populate SQLite database from GTFS files               |
-| `db_connector.py`      | Manage DB connection and performance indexes           |
-| `graph_builder.py`     | Build a NetworkX graph from GTFS trips/stops           |
-| `route_finder.py`      | Compute best path between two stop_ids                 |
-| `schedule_estimator.py`| (Planned) ML-based ETA and prediction module           |
-| `screens/*.py`         | User-facing UI (Streamlit screens)                     |
+| Module                  | Description                                           |
+|-------------------------|-------------------------------------------------------|
+| `data_loader.py`        | Download GTFS data and load CSV files                 |
+| `db_initializer.py`     | Populate SQLite database from GTFS files              |
+| `db_connector.py`       | Manage DB connection and performance indexes          |
+| `graph_builder.py`      | Build a NetworkX graph from GTFS trips/stops          |
+| `route_finder.py`       | Compute best path between two stop_ids                |
+| `automatizer.py.py`     | Launch data_loader and db_initializer automatically   |
+| `schedule_estimator.py` | (Planned) ML-based ETA and prediction module          |
+| `screens/*.py`          | User-facing UI (Streamlit screens)                    |
 
 ---
 
 ## 🎯 Objectives Ahead
 
 - Integrate **prediction models** for real-time traffic
-- Build **interactive map visualizations**
 - Add **alerts and notification features**
 - Support **multi-modal routing** and **priority management**
 
@@ -167,4 +169,4 @@ streamlit run app/Menu.py
 
 ## 📜 License
 
-Project under development for educational and exploratory purposes. License to be defined.
+Project under development for educational and exploratory purposes.
