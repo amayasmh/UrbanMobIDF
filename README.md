@@ -111,6 +111,7 @@ cp .env.example .env
 # Install Edge WebDriver
 pip install msedge-selenium-tools selenium
 # Download and install Microsoft Edge WebDriver
+from "https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/é"
 
 # Launch data loader to download GTFS data
 python app/services/data_loader.py
@@ -118,12 +119,18 @@ python app/services/data_loader.py
 # Initialize the database
 python app/services/db_initializer.py
 
-# Option 1: Run Streamlit app
-streamlit run app/menu.py
+# Option 1: To automatically run all modules and automatize the process
+- Sur windows, use the task scheduler to run the following command 3 times per day (at 8:00, 13:00, and 17:00)
+python app/services/automatizer.py or "<path_to_your_python_env> <path_to_your_project>/app/services/automatizer.py"
+- On Unix systems, use cron jobs to run the following command 3 times per day (at 8:00, 13:00, and 17:00)
+0 8,13,17 * * * /path/to/your/python /path/to/your/project/app/services/automatizer.py
 
 # Option 2: Run modules individually if needed
 python app/services/data_loader.py
 python app/services/db_initializer.py
+
+# Start the Streamlit app
+streamlit run app/Menu.py
 ```
 
 ---

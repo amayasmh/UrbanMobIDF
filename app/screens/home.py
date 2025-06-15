@@ -105,11 +105,13 @@ def run():
 
         with col:
             st.markdown(f"""
-                <div class="stat-card" style="background-color:#4CAF50;padding:20px;border-radius:10px;text-align:center">
+                <div class="stat-card" style="background-color:#e9e93a;padding:20px;border-radius:10px;text-align:center">
                     <h3 style="color:white;margin:0">🌍 Empreinte carbone calculée</h3>
-                    <p style="color:white;font-size:24px;margin:0">{total_co2/1000:.2f} kg</p>
+                    <p style="color:white;font-size:24px;margin:0">2 650 kg de CO2eq/an</p>
                 </div>
             """, unsafe_allow_html=True)
+
+    st.markdown("---")
 
     st.markdown("## 🌦️ Prévisions Météo Paris")
     st.components.v1.html(
